@@ -14,7 +14,7 @@ code{word-break:break-all;color:#9a93ab}
 <body>
 <main>
 <div id="msg">Loading Shattered Canvas from the blockchain…</div>
-<code>Base Sepolia · page contract 0xb9b84d975ec22eb0fc1d8ae9b9f61460e1b9ddcb</code>
+<code>Base Sepolia · page contract 0x9972363439f63ce9bc23e792384e07e280fc302e</code>
 </main>
 <script>
 (()=>{ // own scope: document.write keeps the global scope, and the page declares the same helpers
@@ -64,7 +64,7 @@ function sel(sig){return keccak(te.encode(sig)).slice(0,4);}
 // Loader: fetch the site stored in the page contract (ERC-8244 html()), check
 // its hash against the contract's PAGE_HASH, then render it. This file only
 // delivers the loader; every byte of the site comes from the chain.
-const L={page:"0xb9b84d975ec22eb0fc1d8ae9b9f61460e1b9ddcb",rpcs:["https://sepolia.base.org","https://base-sepolia-rpc.publicnode.com"],chainId:84532};
+const L={page:"0x9972363439f63ce9bc23e792384e07e280fc302e",rpcs:["https://sepolia.base.org","https://base-sepolia-rpc.publicnode.com"],chainId:84532};
 const msg=t=>{const m=document.getElementById("msg");m.textContent=t;m.className="bad";};
 async function rpc(method,params){let last;for(const u of L.rpcs){try{const r=await fetch(u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method,params})});
   const j=await r.json();if(j.error)throw new Error(j.error.message);return j.result;}catch(e){last=e;}}throw last||new Error("no RPC");}
