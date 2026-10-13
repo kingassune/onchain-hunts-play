@@ -9,12 +9,17 @@ html,body{margin:0;background:#0e0d14;color:#efeaf6;font:15px/1.5 ui-monospace,S
 main{max-width:560px;margin:0 auto;padding:40px 16px;display:grid;gap:12px}
 .bad{color:#ff8a7a}
 code{word-break:break-all;color:#9a93ab}
+h1{margin:0;font-size:1.3em;letter-spacing:.08em}
+details summary{cursor:pointer;color:#9a93ab}
+button{min-height:44px;padding:8px 18px;font:inherit;font-weight:700;background:#efeaf6;color:#0e0d14;border:0;border-radius:8px;justify-self:start}
 </style>
 </head>
 <body>
 <main>
-<div id="msg">Loading HEADS from the blockchain…</div>
-<code>Base Sepolia · page contract 0x377c3ca389094ded207ba3c39cf19182de4788d7</code>
+<h1>HEADS</h1>
+<p id="msg" role="status">Checking the network…</p>
+<button id="retry" type="button" hidden onclick="location.reload()">Retry</button>
+<details><summary>Technical details</summary><code>The app is stored on Base Sepolia in page contract 0x377c3ca389094ded207ba3c39cf19182de4788d7 and checked against its on-chain fingerprint before it runs.</code></details>
 </main>
 <script>
 (()=>{ // own scope: document.write keeps the global scope, and the page declares the same helpers
@@ -65,17 +70,21 @@ function sel(sig){return keccak(te.encode(sig)).slice(0,4);}
 // its hash against the contract's PAGE_HASH, then render it. This file only
 // delivers the loader; every byte of the site comes from the chain.
 const L={page:"0x377c3ca389094ded207ba3c39cf19182de4788d7",rpcs:["https://sepolia.base.org","https://base-sepolia-rpc.publicnode.com"],chainId:84532};
-const msg=t=>{const m=document.getElementById("msg");m.textContent=t;m.className="bad";};
-async function rpc(method,params){let last;for(const u of L.rpcs){try{const r=await fetch(u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method,params})});
+const stage=t=>{document.getElementById("msg").textContent=t;};
+const msg=t=>{const m=document.getElementById("msg");m.textContent=t;m.className="bad";document.getElementById("retry").hidden=false;};
+async function rpc(method,params){let last;for(const u of L.rpcs){try{const r=await fetch(u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method,params}),signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
   const j=await r.json();if(j.error)throw new Error(j.error.message);return j.result;}catch(e){last=e;}}throw last||new Error("no RPC");}
 (async()=>{try{
   if(BigInt(await rpc("eth_chainId",[]))!==BigInt(L.chainId))throw new Error("RPC is on the wrong chain.");
+  stage("Fetching HEADS from Base Sepolia…");
   const [doc]=abiDec(["bytes"],unhex(await rpc("eth_call",[{to:L.page,data:hex(sel("html()"))},"latest"])));
   const want=await rpc("eth_call",[{to:L.page,data:hex(sel("PAGE_HASH()"))},"latest"]);
+  stage("Checking the app against its on-chain fingerprint…");
   if(hex(keccak(doc)).toLowerCase()!==want.toLowerCase())throw new Error("The page didn't match its on-chain hash, so it wasn't shown.");
+  stage("Starting…");
   const html=new TextDecoder().decode(doc);
   document.open();document.write(html);document.close();
-}catch(e){msg("Couldn't load the page from the chain: "+(e&&e.message||e)+" Try again in a moment.");}})();
+}catch(e){msg("Couldn't load HEADS from Base Sepolia: "+(e&&e.name==="TimeoutError"?"the network didn't answer in time.":(e&&e.message||e))+" Try again in a moment.");}})();
 })();
 </script>
 </body>
