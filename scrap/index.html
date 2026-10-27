@@ -19,7 +19,7 @@ button{min-height:44px;padding:8px 18px;font:inherit;font-weight:700;background:
 <h1>SCRAP</h1>
 <p id="msg" role="status">Checking the network…</p>
 <button id="retry" type="button" hidden onclick="location.reload()">Retry</button>
-<details><summary>Technical details</summary><code>The app is stored on Base Sepolia in page contract 0x1f3969068b8d02e133a196df4ebd9f12a5e61650 and checked against its on-chain fingerprint before it runs.</code></details>
+<details><summary>Technical details</summary><code>The app is stored on Base Sepolia in page contract 0x1f3969068b8d02e133a196df4ebd9f12a5e61650 and checked against its on-chain fingerprint before it runs. A verified copy is kept in this browser and used again only while it still matches that fingerprint.</code></details>
 </main>
 <script>
 (()=>{ // own scope: document.write keeps the global scope, and the page declares the same helpers
@@ -69,21 +69,35 @@ function sel(sig){return keccak(te.encode(sig)).slice(0,4);}
 // Loader: fetch the site stored in the page contract (ERC-8244 html()), check
 // its hash against the contract's PAGE_HASH, then render it. This file only
 // delivers the loader; every byte of the site comes from the chain.
-const L={page:"0x1f3969068b8d02e133a196df4ebd9f12a5e61650",rpcs:["https://sepolia.base.org","https://base-sepolia-rpc.publicnode.com"],chainId:84532};
+// hash: the page contract's PAGE_HASH, pinned when this loader was built (page
+// contracts are immutable). A copy of the page kept in this browser is shown
+// only if it still hashes to it, so a revisit (or an offline one) needs no RPC.
+const L={page:"0x1f3969068b8d02e133a196df4ebd9f12a5e61650",hash:"0xa1d82d04665909672a4aff0934689695cee993350f2a4520c4c2a98e54b428df".toLowerCase(),rpcs:["https://sepolia.base.org","https://base-sepolia-rpc.publicnode.com"],chainId:84532};
 const stage=t=>{document.getElementById("msg").textContent=t;};
 const msg=t=>{const m=document.getElementById("msg");m.textContent=t;m.className="bad";document.getElementById("retry").hidden=false;};
 async function rpc(method,params){let last;for(const u of L.rpcs){try{const r=await fetch(u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method,params}),signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
-  const j=await r.json();if(j.error)throw new Error(j.error.message);return j.result;}catch(e){last=e;}}throw last||new Error("no RPC");}
+  if(!r.ok)throw new Error("RPC answered HTTP "+r.status);
+  const j=await r.json();if(j.error)throw new Error(j.error.message);if(typeof j.result!=="string")throw new Error("RPC gave no result");return j.result;}catch(e){last=e;}}throw last||new Error("no RPC");}
+// one entry per game (this loader's URL); a newer page overwrites it
+const KEY=location.origin+location.pathname+"?onchain-page";
+const pinned=()=>/^0x[0-9a-f]{64}$/.test(L.hash)&&typeof caches!=="undefined";
+async function fromCache(){if(!pinned())return null;try{const r=await(await caches.open("onchain-pages-v1")).match(KEY);if(!r)return null;
+  const b=new Uint8Array(await r.arrayBuffer());return hex(keccak(b)).toLowerCase()===L.hash?b:null;}catch(e){return null;}}
+async function keep(b){if(!pinned())return;try{await(await caches.open("onchain-pages-v1")).put(KEY,new Response(b,{headers:{"content-type":"application/octet-stream"}}));}catch(e){}}
+const show=doc=>{stage("Starting…");const html=new TextDecoder().decode(doc);document.open();document.write(html);document.close();};
+try{if(navigator.serviceWorker&&(location.protocol==="https:"||location.hostname==="localhost"))navigator.serviceWorker.register("sw.js").catch(()=>{});}catch(e){}
 (async()=>{try{
+  const saved=await fromCache();
+  if(saved){show(saved);return;}
   if(BigInt(await rpc("eth_chainId",[]))!==BigInt(L.chainId))throw new Error("RPC is on the wrong chain.");
   stage("Fetching SCRAP from Base Sepolia…");
   const [doc]=abiDec(["bytes"],unhex(await rpc("eth_call",[{to:L.page,data:hex(sel("html()"))},"latest"])));
-  const want=await rpc("eth_call",[{to:L.page,data:hex(sel("PAGE_HASH()"))},"latest"]);
+  const want=(await rpc("eth_call",[{to:L.page,data:hex(sel("PAGE_HASH()"))},"latest"])).toLowerCase();
   stage("Checking the app against its on-chain fingerprint…");
-  if(hex(keccak(doc)).toLowerCase()!==want.toLowerCase())throw new Error("The page didn't match its on-chain hash, so it wasn't shown.");
-  stage("Starting…");
-  const html=new TextDecoder().decode(doc);
-  document.open();document.write(html);document.close();
+  if(hex(keccak(doc)).toLowerCase()!==want)throw new Error("The page didn't match its on-chain hash, so it wasn't shown.");
+  if(pinned()&&want!==L.hash)throw new Error("The page contract's hash isn't the one this loader expects, so it wasn't shown.");
+  await keep(doc);
+  show(doc);
 }catch(e){msg("Couldn't load SCRAP from Base Sepolia: "+(e&&e.name==="TimeoutError"?"the network didn't answer in time.":(e&&e.message||e))+" Try again in a moment.");}})();
 })();
 </script>
