@@ -19,7 +19,7 @@ button{min-height:44px;padding:8px 18px;font:inherit;font-weight:700;background:
 <h1>SCRAP</h1>
 <p id="msg" role="status">Checking the network…</p>
 <button id="retry" type="button" hidden onclick="location.reload()">Retry</button>
-<details><summary>Technical details</summary><code>The app is stored on Base Sepolia in page contract 0x1f3969068b8d02e133a196df4ebd9f12a5e61650 and checked against its on-chain fingerprint before it runs. A verified copy is kept in this browser and used again only while it still matches that fingerprint.</code></details>
+<details><summary>Technical details</summary><code>The app is stored on Base Sepolia in page contract 0xfc6ae9793d4cd470c767a6b231572be681f6ed01 and checked against its on-chain fingerprint before it runs. A verified copy is kept in this browser and used again only while it still matches that fingerprint.</code></details>
 </main>
 <script>
 (()=>{ // own scope: document.write keeps the global scope, and the page declares the same helpers
@@ -72,7 +72,7 @@ function sel(sig){return keccak(te.encode(sig)).slice(0,4);}
 // hash: the page contract's PAGE_HASH, pinned when this loader was built (page
 // contracts are immutable). A copy of the page kept in this browser is shown
 // only if it still hashes to it, so a revisit (or an offline one) needs no RPC.
-const L={page:"0x1f3969068b8d02e133a196df4ebd9f12a5e61650",hash:"0xa1d82d04665909672a4aff0934689695cee993350f2a4520c4c2a98e54b428df".toLowerCase(),rpcs:["https://sepolia.base.org","https://base-sepolia-rpc.publicnode.com"],chainId:84532};
+const L={page:"0xfc6ae9793d4cd470c767a6b231572be681f6ed01",hash:"0x349c3c0a3d0aea6cb87f6ddea507091077bb986bbd81f3de21103f9796de8721".toLowerCase(),rpcs:["https://sepolia.base.org","https://base-sepolia-rpc.publicnode.com"],chainId:84532};
 const stage=t=>{document.getElementById("msg").textContent=t;};
 const msg=t=>{const m=document.getElementById("msg");m.textContent=t;m.className="bad";document.getElementById("retry").hidden=false;};
 async function rpc(method,params){let last;for(const u of L.rpcs){try{const r=await fetch(u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method,params}),signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
