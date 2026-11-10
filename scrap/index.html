@@ -4,6 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SCRAP</title>
+<meta name="description" content="Pick a robot and fight in 30 seconds, free, no wallet. Build its brain from cards, climb the ghost ladder of real players' bots, then duel on Base.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Onchain Hunts">
+<meta property="og:title" content="SCRAP">
+<meta property="og:description" content="Pick a robot and fight in 30 seconds, free, no wallet. Build its brain from cards, climb the ghost ladder of real players' bots, then duel on Base.">
+<meta property="og:url" content="https://kingassune.github.io/onchain-hunts-play/scrap/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SCRAP">
+<meta name="twitter:description" content="Pick a robot and fight in 30 seconds, free, no wallet. Build its brain from cards, climb the ghost ladder of real players' bots, then duel on Base.">
+<meta property="og:image" content="https://kingassune.github.io/onchain-hunts-play/scrap/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="SCRAP: three robots">
+<meta name="twitter:image" content="https://kingassune.github.io/onchain-hunts-play/scrap/og.png">
+<link rel="canonical" href="https://kingassune.github.io/onchain-hunts-play/scrap/">
 <style>
 html,body{margin:0;background:#0e0d14;color:#efeaf6;font:15px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
 main{max-width:560px;margin:0 auto;padding:40px 16px;display:grid;gap:12px}
@@ -19,7 +34,7 @@ button{min-height:44px;padding:8px 18px;font:inherit;font-weight:700;background:
 <h1>SCRAP</h1>
 <p id="msg" role="status">Checking the network…</p>
 <button id="retry" type="button" hidden onclick="location.reload()">Retry</button>
-<details><summary>Technical details</summary><code>The app is stored on Base Sepolia in page contract 0xc8f3458019d8bdb6378345dc581bed723f1e2319 and checked against its on-chain fingerprint before it runs. A verified copy is kept in this browser and used again only while it still matches that fingerprint.</code></details>
+<details><summary>Technical details</summary><code>The app is stored on Base Sepolia in page contract 0xfe48d1cebf2886fa48fe6e44ad63afb490a9df59 and checked against its on-chain fingerprint before it runs. A verified copy is kept in this browser and used again only while it still matches that fingerprint.</code></details>
 </main>
 <script>
 (()=>{ // own scope: document.write keeps the global scope, and the page declares the same helpers
@@ -72,7 +87,7 @@ function sel(sig){return keccak(te.encode(sig)).slice(0,4);}
 // hash: the page contract's PAGE_HASH, pinned when this loader was built (page
 // contracts are immutable). A copy of the page kept in this browser is shown
 // only if it still hashes to it, so a revisit (or an offline one) needs no RPC.
-const L={page:"0xc8f3458019d8bdb6378345dc581bed723f1e2319",hash:"0x3e2d654305207f85eb1a9a0846bd0c571698056c7baaee7901f61a896c3a97e7".toLowerCase(),rpcs:["https://sepolia.base.org","https://base-sepolia-rpc.publicnode.com"],chainId:84532};
+const L={page:"0xfe48d1cebf2886fa48fe6e44ad63afb490a9df59",hash:"0x3c91165d64f55e10ff6891a7d53c40fda7d9caf19ed85ea0e56a73ac4a55c9f1".toLowerCase(),rpcs:["https://sepolia.base.org","https://base-sepolia-rpc.publicnode.com"],chainId:84532};
 const stage=t=>{document.getElementById("msg").textContent=t;};
 const msg=t=>{const m=document.getElementById("msg");m.textContent=t;m.className="bad";document.getElementById("retry").hidden=false;};
 async function rpc(method,params){let last;for(const u of L.rpcs){try{const r=await fetch(u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method,params}),signal:AbortSignal.timeout?AbortSignal.timeout(10000):undefined});
